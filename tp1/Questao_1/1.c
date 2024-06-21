@@ -16,11 +16,11 @@ void *adiciona(void *arg) {
     int valor = *(int *)arg;
     sem_wait(&semaforo);
 
-    printf("(THREAD ESCRITORA) Antes de adicionar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Antes de adicionar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
     car.itens++;
-    sleep(0.7); // 0.7 segundos em microssegundos
+    sleep(1); // simular a perda de CPU
     car.valor += valor;
-    printf("(THREAD ESCRITORA) Depois de adicionar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Depois de adicionar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
 
     sem_post(&semaforo);
     return NULL;
@@ -30,11 +30,11 @@ void *retira(void *arg) {
     int valor = *(int *)arg;
     sem_wait(&semaforo);
 
-    printf("(THREAD ESCRITORA) Antes de retirar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Antes de retirar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
     car.itens--;
-    sleep(0.7);
+    sleep(1);
     car.valor -= valor;
-    printf("(THREAD ESCRITORA) Depois de retirar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Depois de retirar | ITENS: %d VALOR: %d\n", car.itens, car.valor);
 
     sem_post(&semaforo);
     return NULL;
@@ -42,7 +42,8 @@ void *retira(void *arg) {
 
 void *consulta(void *arg) {
     sem_wait(&semaforo);
-    printf("(THREAD LEITORA) Carrinho | ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[LEITORA] Carrinho | ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    sleep(0.5);
     sem_post(&semaforo);
     return NULL;
 }
@@ -54,10 +55,10 @@ int main() {
 
     int num_adiciona, num_retira, leitoras, add, rm;
 
-    printf("Insira a quantidade de adiciona, retira e leitoras: ");
+    printf("Insira a quantidade de itens que deseja adicionar, retirar e quantidade de threads leitoras: ");
     scanf("%d %d %d", &num_adiciona, &num_retira, &leitoras);
 
-    printf("Qual valor de adicionar e retira: ");
+    printf("Qual valor deseja adicionar e retirar?: ");
     scanf("%d %d", &add, &rm);
 
     pthread_t threads[num_adiciona + num_retira + leitoras];
@@ -79,6 +80,6 @@ int main() {
     }
 
     printf("VALORES FINAIS | ITENS: %d VALOR: %d\n", car.itens, car.valor);
-    sem_destroy(&semaforo); // Libera o semáforo
+    sem_destroy(&semaforo); 
     return 0;
 }

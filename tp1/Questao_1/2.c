@@ -6,8 +6,8 @@
 
 int dinheiro = 0;
 int countWriter;
-sem_t semaforoL; // Semaphore for readers
-sem_t semaforoE; // Semaphore for writers
+sem_t semaforoLeitura; 
+sem_t semaroEscrita;
 
 typedef struct {
     int itens;
@@ -16,54 +16,55 @@ typedef struct {
 
 carrinho car;
 
-void *adiciona(void *arg) { // Writer
+void *adiciona(void *arg) { 
     int *valor = (int *)arg;
-    sem_wait(&semaforoE);
-    printf("(THREAD ESCRITORA) Antes de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    sem_wait(&semaroEscrita);
+    printf("[ESCRITORA] Antes de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     car.itens++;
-    sleep(0.7);
+    sleep(1);
     car.valor += *valor;
-    printf("(THREAD ESCRITORA) Depois de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Depois de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     countWriter--;
-    sem_post(&semaforoE);
-    sem_post(&semaforoL);
+    sem_post(&semaroEscrita);
+    sem_post(&semaforoLeitura);
     return NULL;
 }
 
-void *retira(void *arg) { // Writer
+void *retira(void *arg) { 
     int *valor = (int *)arg;
-    sem_wait(&semaforoE);
-    printf("(THREAD ESCRITORA) Antes de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    sem_wait(&semaroEscrita);
+    printf("[ESCRITORA] Antes de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     car.itens--;
-    sleep(0.7);
+    sleep(1);
     car.valor -= *valor;
-    printf("(THREAD ESCRITORA) Depois de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Depois de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     countWriter--;
-    sem_post(&semaforoE);
-    sem_post(&semaforoL);
+    sem_post(&semaroEscrita);
+    sem_post(&semaforoLeitura);
     return NULL;
 }
 
-void *consulta(void *arg) { // Reader
+void *consulta(void *arg) { 
     while (countWriter != 0) {
-        sem_wait(&semaforoL);
+        sem_wait(&semaforoLeitura);
     }
-    printf("(THREAD LEITORA) Carrinho| ITENS: %d VALOR: %d\n", car.itens, car.valor);
-    sem_post(&semaforoL);
+    sleep(1);
+    printf("[LEITORA] Carrinho| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    sem_post(&semaforoLeitura);
     return NULL;
 }
 
 int main() {
-    sem_init(&semaforoL, 0, 1);
-    sem_init(&semaforoE, 0, 1);
+    sem_init(&semaforoLeitura, 0, 1);
+    sem_init(&semaroEscrita, 0, 1);
     int leitoras, num_adiciona, num_retira;
-    printf("Insira a quantidade de adiciona, retira e leitoras: ");
+    printf("Insira a quantidade de itens que deseja adicionar, quantos deseja retirar e quantidade de threads leitoras: ");
     scanf("%d %d %d", &num_adiciona, &num_retira, &leitoras);
     countWriter = num_adiciona + num_retira;
 
     pthread_t threads[num_adiciona + num_retira + leitoras];
     int add, rm;
-    printf("Qual valor de adicionar e retirar: ");
+    printf("Qual valor deseja adicionar e retirar?: ");
     scanf("%d %d", &add, &rm);
 
     for (int i = 0; i < num_adiciona; i++) {

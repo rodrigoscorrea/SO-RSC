@@ -11,40 +11,45 @@ struct carrinho car;
 
 void *adiciona(void *i) {
     int aux;
-    printf("(ESCRITORA) Antes de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Antes de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     car.itens++;
     aux = car.valor;
     aux += *((int *)i);
-    sleep(1); // Simulating some work
+    sleep(1); // Simula a perda de CPU
     car.valor += aux;
-    printf("(ESCRITORA) Depois de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Depois de adicionar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     return NULL;
 }
 
 void *retira(void *i) {
     int aux;
-    printf("(ESCRITORA) Antes de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Antes de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     car.itens--;
     aux = car.valor;
     aux -= *((int *)i);
-    sleep(1); // Simulating some work
+    sleep(1); 
     car.valor -= aux;
-    printf("(ESCRITORA) Depois de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    printf("[ESCRITORA] Depois de retirar| ITENS: %d VALOR: %d\n", car.itens, car.valor);
+    return NULL;
+}
+
+void *consulta(void *arg) { 
+    printf("[LEITORA] Carrinho| ITENS: %d VALOR: %d\n", car.itens, car.valor);
     return NULL;
 }
 
 int main() {
     car.itens = 0;
     car.valor = 0;
-    int num_adiciona, num_retira;
+    int num_adiciona, num_retira, leitoras;
 
-    printf("Insira a quantidade de adiciona e retira: ");
+    printf("Insira a quantidade de itens que deseja adicionar, quantos deseja retirar e quantidade de threads leitoras: ");
     scanf("%d %d", &num_adiciona, &num_retira);
 
-    pthread_t threads[num_adiciona + num_retira];
+    pthread_t threads[num_adiciona + num_retira + leitoras];
     int add, rm;
 
-    printf("Qual valor de adicionar e retirar: ");
+    printf("Qual valor deseja adicionar e retirar?: ");
     scanf("%d %d", &add, &rm);
 
     for (int i = 0; i < num_adiciona; i++) {
@@ -55,7 +60,11 @@ int main() {
         pthread_create(&threads[i], NULL, retira, &rm);
     }
 
-    for (int i = 0; i < num_adiciona + num_retira; i++) {
+    for (int i = num_adiciona + num_retira; i < num_adiciona + num_retira + leitoras; i++) {
+        pthread_create(&threads[i], NULL, consulta, NULL); 
+    }
+
+    for (int i = 0; i < num_adiciona + num_retira + leitoras; i++) {
         pthread_join(threads[i], NULL);
     }
 

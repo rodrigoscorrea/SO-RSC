@@ -5,7 +5,7 @@
 #include <semaphore.h>
 
 #define MAX_BUFFER 5
-#define NUM_PRODUTORES 2
+#define NUM_PRODUTORES 4
 #define NUM_CONSUMIDORES 1
 #define QTD_PROD 3
 
@@ -23,26 +23,39 @@ void *produtor(void *arg) {
         sem_wait(&empty); 
         pthread_mutex_lock(&mutex); 
         buffer[in] = item;
-        printf("Produtor %d inseriu %d no buffer[%d]\n", *(int*)arg, item, in);
+        printf("Produtor %d produzindo %d\n", *(int*)arg, item);
+        printf("Buffer: ");
+        for (int j = 0; j < MAX_BUFFER; j++) {
+            printf("%d ", buffer[j]);
+        }
+        sleep(1.7);
         in = (in + 1) % MAX_BUFFER;
         count++;
         pthread_mutex_unlock(&mutex); 
         sem_post(&full); 
+        printf("\nProdutor %d dormindo\n\n", *(int*)arg);
     }
     pthread_exit(NULL);
 }
 
 void *consumidor(void *arg) {
     int item, i;
-    for (i = 0; i < (QTD_PROD * NUM_PRODUTORES); i++) { // Ajuste para consumir proporcionalmente
+    for (i = 0; i < (QTD_PROD * NUM_PRODUTORES); i++) { //Consumo é proporcional
         sem_wait(&full); 
         pthread_mutex_lock(&mutex); 
         item = buffer[out];
-        printf("Consumidor %d retirou %d do buffer[%d]\n", *(int*)arg, item, out);
+        printf("Consumidor %d consumindo %d do buffer[%d]\n", *(int*)arg, item, out);
+        buffer[out] = 0;
+        printf("Buffer: ");
+        for (int j = 0; j < MAX_BUFFER; j++) {
+            printf("%d ", buffer[j]);
+        }
         out = (out + 1) % MAX_BUFFER;
+        sleep(0.25);
         count--;
         pthread_mutex_unlock(&mutex); 
         sem_post(&empty); 
+        printf("\nConsumidor %d dormindo\n\n", *(int*)arg);
     }
     pthread_exit(NULL);
 }
@@ -77,3 +90,5 @@ int main() {
 
     return 0;
 }
+
+
